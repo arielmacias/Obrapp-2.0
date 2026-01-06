@@ -33,7 +33,13 @@ app.use('/api', estimacionesRoutes);
 app.use((err, _req, res, _next) => {
   console.error(err);
   const status = err.status || (err.name === 'MulterError' ? 400 : 500);
-  res.status(status).json({ message: err.message || 'Error interno del servidor' });
+  let message = err.message || 'Error interno del servidor';
+  if (err.code === 'ER_ACCESS_DENIED_ERROR') {
+    message = 'No se pudo autenticar con la base de datos. Revisa usuario y contraseña.';
+  } else if (err.code === 'ER_BAD_DB_ERROR') {
+    message = 'No se encontró la base de datos configurada. Revisa el nombre de la BD.';
+  }
+  res.status(status).json({ message });
 });
 
 app.listen(PORT, () => {
