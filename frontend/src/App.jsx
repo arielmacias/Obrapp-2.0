@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import apiClient from './api/client';
 import { useAuth } from './context/AuthContext';
 import { useObra } from './context/ObraContext';
@@ -9,7 +9,7 @@ import EstimacionDetalle from './components/EstimacionDetalle';
 import GenerarEstimacionModal from './components/GenerarEstimacionModal';
 
 const App = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { obraSeleccionada } = useObra();
   const [estimaciones, setEstimaciones] = useState([]);
   const [detalle, setDetalle] = useState(null);
@@ -18,15 +18,7 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="centered">
-        <LoginForm />
-      </div>
-    );
-  }
-
-  const loadEstimaciones = async () => {
+  const loadEstimaciones = useCallback(async () => {
     if (!obraSeleccionada?.id) return;
     setIsLoading(true);
     setError('');
@@ -38,12 +30,26 @@ const App = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [obraSeleccionada?.id]);
 
   useEffect(() => {
     setDetalle(null);
     loadEstimaciones();
-  }, [obraSeleccionada?.id]);
+  }, [obraSeleccionada?.id, loadEstimaciones]);
+
+  const isHydrating = isAuthLoading || (isAuthenticated && !obraSeleccionada);
+
+  if (isHydrating) {
+    return <div className="centered">Cargando...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="centered">
+        <LoginForm />
+      </div>
+    );
+  }
 
   const handleSelect = async (estimacionId) => {
     setIsLoading(true);
