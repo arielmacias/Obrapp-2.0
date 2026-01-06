@@ -14,7 +14,9 @@ MVP mínimo con flujo end-to-end:
 Crear la base y tablas usando el script:
 
 ```bash
-mysql -u root -p < db/schema.sql
+cd backend
+npm install
+npm run db:setup
 ```
 
 Esto crea la BD `obrapp`, las tablas `usuarios` y `obras`, y un usuario demo:
