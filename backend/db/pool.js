@@ -1,23 +1,29 @@
 const mysql = require('mysql2/promise');
 
 const {
-  DB_HOST = 'localhost',
-  DB_USER = 'root',
+  DB_HOST,
+  DB_USER,
   DB_PASSWORD,
-  DB_NAME = 'obrapp',
-  DB_PORT = 3306
+  DB_NAME,
+  DB_PORT,
+  MYSQL_HOST,
+  MYSQL_USER,
+  MYSQL_PASSWORD,
+  MYSQL_ROOT_PASSWORD,
+  MYSQL_DATABASE,
+  MYSQL_PORT
 } = process.env;
 
-if (DB_PASSWORD === undefined) {
-  throw new Error('DB_PASSWORD no está configurada. Revisa el archivo .env del backend.');
-}
+const resolvedConfig = {
+  host: DB_HOST || MYSQL_HOST || 'localhost',
+  user: DB_USER || MYSQL_USER || 'root',
+  password: DB_PASSWORD ?? MYSQL_PASSWORD ?? MYSQL_ROOT_PASSWORD ?? '',
+  database: DB_NAME || MYSQL_DATABASE || 'obrapp',
+  port: Number(DB_PORT || MYSQL_PORT || 3306)
+};
 
 const pool = mysql.createPool({
-  host: DB_HOST,
-  user: DB_USER,
-  password: DB_PASSWORD,
-  database: DB_NAME,
-  port: Number(DB_PORT),
+  ...resolvedConfig,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

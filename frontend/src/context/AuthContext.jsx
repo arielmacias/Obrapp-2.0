@@ -43,6 +43,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const data = await apiClient.login({ email, password });
+      localStorage.setItem(TOKEN_KEY, data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { ok: true };
