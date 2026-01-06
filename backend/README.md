@@ -7,13 +7,13 @@ Backend base para la aplicación ObrAPP.
 - MySQL 8+
 
 ## Configuración
-Crear un archivo `.env` en `/backend` con:
+Crear un archivo `.env` en `/backend` (usa `.env.example` como base):
 
 ```
 PORT=3001
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=
+DB_PASSWORD=tu_password
 DB_NAME=obrapp
 JWT_SECRET=dev_secret
 ```
@@ -35,5 +35,5 @@ npm run dev
 - `POST /api/auth/login`
 
 ### Login dummy
-- Usuario: `admin@obrapp.local`
-- Contraseña: `password`
+- Admin: `admin@obrapp.local` / `password`
+- Residente: `residente@obrapp.local` / `password`

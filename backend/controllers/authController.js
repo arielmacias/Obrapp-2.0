@@ -8,13 +8,13 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Email y contraseña son requeridos' });
     }
 
-    const token = await authenticateUser({ email, password });
+    const authResult = await authenticateUser({ email, password });
 
-    if (!token) {
+    if (!authResult) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    return res.json({ token });
+    return res.json(authResult);
   } catch (error) {
     return next(error);
   }

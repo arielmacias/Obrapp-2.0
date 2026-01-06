@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS obrapp;
+USE obrapp;
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -10,6 +13,7 @@ CREATE TABLE IF NOT EXISTS obras (
   nombre VARCHAR(255) NOT NULL,
   clave VARCHAR(10),
   direccion VARCHAR(255),
+  ubicacion VARCHAR(255),
   cliente VARCHAR(255),
   responsable VARCHAR(255),
   fecha_inicio DATE,
@@ -29,12 +33,13 @@ CREATE TABLE IF NOT EXISTS cuentas (
 CREATE TABLE IF NOT EXISTS gastos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   obra_id INT NOT NULL,
-  cuenta_id INT NOT NULL,
+  cuenta_id INT,
   tipo VARCHAR(10),
   partida VARCHAR(100),
   concepto VARCHAR(255),
   proveedor VARCHAR(255),
   referencia_comprobante VARCHAR(50),
+  comprobante_path VARCHAR(255),
   monto DECIMAL(12, 2) NOT NULL,
   iva TINYINT(1) DEFAULT 0,
   estatus_pago VARCHAR(10) DEFAULT 'PP',
@@ -47,10 +52,14 @@ CREATE TABLE IF NOT EXISTS gastos (
 CREATE TABLE IF NOT EXISTS pagos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   obra_id INT NOT NULL,
+  gasto_id INT NOT NULL,
+  cuenta_id INT NOT NULL,
   monto DECIMAL(12, 2) NOT NULL,
   fecha DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (obra_id) REFERENCES obras(id)
+  FOREIGN KEY (obra_id) REFERENCES obras(id),
+  FOREIGN KEY (gasto_id) REFERENCES gastos(id),
+  FOREIGN KEY (cuenta_id) REFERENCES cuentas(id)
 );
 
 CREATE TABLE IF NOT EXISTS estimaciones (

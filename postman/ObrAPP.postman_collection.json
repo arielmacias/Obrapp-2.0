@@ -5,33 +5,378 @@
   },
   "item": [
     {
-      "name": "Login",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@obrapp.local\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"admin@obrapp.local\",\n  \"password\": \"password\"\n}"
-        },
-        "url": {
-          "raw": "http://localhost:3001/api/auth/login",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "3001",
-          "path": [
-            "api",
-            "auth",
-            "login"
-          ]
         }
-      }
+      ]
+    },
+    {
+      "name": "Obras",
+      "item": [
+        {
+          "name": "Listar obras",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/obras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear obra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Casa Angélica\",\n  \"clave\": \"ANG\",\n  \"direccion\": \"Av. Reforma 123\",\n  \"ubicacion\": \"CDMX\",\n  \"cliente\": \"Familia López\",\n  \"responsable\": \"Ariel Morales\",\n  \"fecha_inicio\": \"2025-01-01\",\n  \"honorarios_porcentaje\": 12.5,\n  \"estado\": \"activa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/obras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar obra",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responsable\": \"Nuevo responsable\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Archivar obra",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/archivar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}",
+                "archivar"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gastos",
+      "item": [
+        {
+          "name": "Listar gastos (semana + no pagados)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/gastos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}",
+                "gastos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear gasto (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "fecha",
+                  "value": "2025-01-05",
+                  "type": "text"
+                },
+                {
+                  "key": "tipo",
+                  "value": "MAT",
+                  "type": "text"
+                },
+                {
+                  "key": "partida",
+                  "value": "Cimentación",
+                  "type": "text"
+                },
+                {
+                  "key": "concepto",
+                  "value": "Compra de varilla",
+                  "type": "text"
+                },
+                {
+                  "key": "proveedor",
+                  "value": "Aceros del Centro",
+                  "type": "text"
+                },
+                {
+                  "key": "referencia_comprobante",
+                  "value": "VAR-002",
+                  "type": "text"
+                },
+                {
+                  "key": "monto",
+                  "value": "12000",
+                  "type": "text"
+                },
+                {
+                  "key": "iva",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "estatus_pago",
+                  "value": "PP",
+                  "type": "text"
+                },
+                {
+                  "key": "comprobante",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/gastos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}",
+                "gastos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalle de gasto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gastos/{{gasto_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gastos",
+                "{{gasto_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar gasto (status/cuenta)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estatus_pago\": \"P\",\n  \"cuenta_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/gastos/{{gasto_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gastos",
+                "{{gasto_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pagos",
+      "item": [
+        {
+          "name": "Registrar pago (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cuenta_id\": 1,\n  \"monto\": 12000,\n  \"fecha\": \"2025-01-06\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/gastos/{{gasto_id}}/pagos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}",
+                "gastos",
+                "{{gasto_id}}",
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar pagos por obra",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/pagos?fecha=2025-01-06",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "obras",
+                "{{obra_id}}",
+                "pagos"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "2025-01-06"
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     {
       "name": "Estimaciones",
@@ -44,6 +389,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
@@ -51,16 +400,14 @@
               "raw": "{\n  \"fecha\": \"2025-01-05\",\n  \"generadoPor\": \"Sistema\"\n}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/obras/1/estimaciones",
-              "protocol": "http",
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/estimaciones",
               "host": [
-                "localhost"
+                "{{baseUrl}}"
               ],
-              "port": "3001",
               "path": [
                 "api",
                 "obras",
-                "1",
+                "{{obra_id}}",
                 "estimaciones"
               ]
             }
@@ -74,6 +421,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
@@ -81,16 +432,14 @@
               "raw": "{\n  \"fecha\": \"2025-01-05\"\n}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/obras/1/estimaciones?preview=true",
-              "protocol": "http",
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/estimaciones?preview=true",
               "host": [
-                "localhost"
+                "{{baseUrl}}"
               ],
-              "port": "3001",
               "path": [
                 "api",
                 "obras",
-                "1",
+                "{{obra_id}}",
                 "estimaciones"
               ],
               "query": [
@@ -106,17 +455,21 @@
           "name": "Listar estimaciones por obra",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "http://localhost:3001/api/obras/1/estimaciones",
-              "protocol": "http",
+              "raw": "{{baseUrl}}/api/obras/{{obra_id}}/estimaciones",
               "host": [
-                "localhost"
+                "{{baseUrl}}"
               ],
-              "port": "3001",
               "path": [
                 "api",
                 "obras",
-                "1",
+                "{{obra_id}}",
                 "estimaciones"
               ]
             }
@@ -126,17 +479,21 @@
           "name": "Detalle de estimación",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "http://localhost:3001/api/estimaciones/1",
-              "protocol": "http",
+              "raw": "{{baseUrl}}/api/estimaciones/{{estimacion_id}}",
               "host": [
-                "localhost"
+                "{{baseUrl}}"
               ],
-              "port": "3001",
               "path": [
                 "api",
                 "estimaciones",
-                "1"
+                "{{estimacion_id}}"
               ]
             }
           }
@@ -145,23 +502,49 @@
           "name": "Descargar PDF estimación",
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "http://localhost:3001/api/estimaciones/1/pdf",
-              "protocol": "http",
+              "raw": "{{baseUrl}}/api/estimaciones/{{estimacion_id}}/pdf",
               "host": [
-                "localhost"
+                "{{baseUrl}}"
               ],
-              "port": "3001",
               "path": [
                 "api",
                 "estimaciones",
-                "1",
+                "{{estimacion_id}}",
                 "pdf"
               ]
             }
           }
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "obra_id",
+      "value": "1"
+    },
+    {
+      "key": "gasto_id",
+      "value": "1"
+    },
+    {
+      "key": "estimacion_id",
+      "value": "1"
     }
   ]
 }

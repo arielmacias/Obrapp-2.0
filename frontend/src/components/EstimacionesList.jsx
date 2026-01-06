@@ -22,7 +22,7 @@ const EstimacionesList = ({ estimaciones, onSelect, onGenerar, isLoading, error,
           <h2>Estimaciones — Obra: {obraNombre || 'Sin obra seleccionada'}</h2>
           <p className="muted">Listado semanal de estimaciones por obra.</p>
         </div>
-        <button type="button" onClick={onGenerar}>
+        <button type="button" onClick={onGenerar} disabled={!obraNombre}>
           + Generar estimación
         </button>
       </header>
@@ -30,7 +30,8 @@ const EstimacionesList = ({ estimaciones, onSelect, onGenerar, isLoading, error,
       {isLoading && <p className="muted">Cargando estimaciones...</p>}
       {error && <p className="error">{error}</p>}
 
-      {!isLoading && estimaciones.length === 0 && !error && (
+      {!obraNombre && <p className="muted">Selecciona una obra para visualizar estimaciones.</p>}
+      {!isLoading && estimaciones.length === 0 && !error && obraNombre && (
         <p className="muted">Aún no hay estimaciones generadas para esta obra.</p>
       )}
 
