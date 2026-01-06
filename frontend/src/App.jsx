@@ -7,16 +7,20 @@ import LoginForm from './components/LoginForm';
 import EstimacionesList from './components/EstimacionesList';
 import EstimacionDetalle from './components/EstimacionDetalle';
 import GenerarEstimacionModal from './components/GenerarEstimacionModal';
+import ObrasView from './components/ObrasView';
+import GastosView from './components/GastosView';
+import PagosView from './components/PagosView';
 
 const App = () => {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const { obraSeleccionada } = useObra();
+  const { isAuthenticated, isLoading: isAuthLoading, isHydrating } = useAuth();
+  const { obraSeleccionada, isLoading: isObraLoading } = useObra();
   const [estimaciones, setEstimaciones] = useState([]);
   const [detalle, setDetalle] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [activeView, setActiveView] = useState('gastos');
 
   const loadEstimaciones = useCallback(async () => {
     if (!obraSeleccionada?.id) return;
@@ -33,13 +37,16 @@ const App = () => {
   }, [obraSeleccionada?.id]);
 
   useEffect(() => {
+    if (activeView !== 'estimaciones') {
+      return;
+    }
     setDetalle(null);
     loadEstimaciones();
-  }, [obraSeleccionada?.id, loadEstimaciones]);
+  }, [obraSeleccionada?.id, loadEstimaciones, activeView]);
 
-  const isHydrating = isAuthLoading || (isAuthenticated && !obraSeleccionada);
+  const isPageLoading = isAuthLoading || isHydrating || (isAuthenticated && isObraLoading);
 
-  if (isHydrating) {
+  if (isPageLoading) {
     return <div className="centered">Cargando...</div>;
   }
 
@@ -88,9 +95,18 @@ const App = () => {
     }
   };
 
-  return (
-    <Layout>
-      {detalle ? (
+  const renderView = () => {
+    if (activeView === 'obras') {
+      return <ObrasView />;
+    }
+    if (activeView === 'gastos') {
+      return <GastosView />;
+    }
+    if (activeView === 'pagos') {
+      return <PagosView />;
+    }
+    if (activeView === 'estimaciones') {
+      return detalle ? (
         <EstimacionDetalle
           detalle={detalle}
           onBack={() => setDetalle(null)}
@@ -107,7 +123,14 @@ const App = () => {
           error={error}
           obraNombre={obraSeleccionada?.nombre}
         />
-      )}
+      );
+    }
+    return null;
+  };
+
+  return (
+    <Layout activeView={activeView} onNavigate={setActiveView}>
+      {renderView()}
 
       <GenerarEstimacionModal
         obraId={obraSeleccionada?.id}
