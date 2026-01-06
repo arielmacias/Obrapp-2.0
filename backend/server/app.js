@@ -5,6 +5,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 
 const authRoutes = require('../routes/auth');
+const estimacionesRoutes = require('../routes/estimaciones');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,10 +19,12 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api', estimacionesRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res.status(500).json({ message: 'Error interno del servidor' });
+  const status = err.status || 500;
+  res.status(status).json({ message: err.message || 'Error interno del servidor' });
 });
 
 app.listen(PORT, () => {

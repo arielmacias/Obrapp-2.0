@@ -1,11 +1,22 @@
+import { useEffect, useState } from 'react';
+import apiClient from './api/client';
 import { useAuth } from './context/AuthContext';
 import { useObra } from './context/ObraContext';
 import Layout from './components/Layout';
 import LoginForm from './components/LoginForm';
+import EstimacionesList from './components/EstimacionesList';
+import EstimacionDetalle from './components/EstimacionDetalle';
+import GenerarEstimacionModal from './components/GenerarEstimacionModal';
 
 const App = () => {
   const { isAuthenticated } = useAuth();
   const { obraSeleccionada } = useObra();
+  const [estimaciones, setEstimaciones] = useState([]);
+  const [detalle, setDetalle] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -15,15 +26,89 @@ const App = () => {
     );
   }
 
+  const loadEstimaciones = async () => {
+    if (!obraSeleccionada?.id) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await apiClient.listarEstimaciones(obraSeleccionada.id);
+      setEstimaciones(data.estimaciones || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setDetalle(null);
+    loadEstimaciones();
+  }, [obraSeleccionada?.id]);
+
+  const handleSelect = async (estimacionId) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await apiClient.obtenerEstimacion(estimacionId);
+      setDetalle(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerated = (data) => {
+    setIsModalOpen(false);
+    setDetalle(data);
+    loadEstimaciones();
+  };
+
+  const handleDownload = async () => {
+    if (!detalle?.estimacion?.id) return;
+    setIsDownloading(true);
+    try {
+      const blob = await apiClient.descargarPdfEstimacion(detalle.estimacion.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `estimacion-${detalle.estimacion.id}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <Layout>
-      <section className="card">
-        <h2>Resumen de obra</h2>
-        <p>
-          Obra seleccionada: <strong>{obraSeleccionada?.nombre}</strong>
-        </p>
-        <p>Base lista para módulos de gastos, pagos y estimaciones.</p>
-      </section>
+      {detalle ? (
+        <EstimacionDetalle
+          detalle={detalle}
+          onBack={() => setDetalle(null)}
+          onDownload={handleDownload}
+          isDownloading={isDownloading}
+          error={error}
+        />
+      ) : (
+        <EstimacionesList
+          estimaciones={estimaciones}
+          onSelect={handleSelect}
+          onGenerar={() => setIsModalOpen(true)}
+          isLoading={isLoading}
+          error={error}
+          obraNombre={obraSeleccionada?.nombre}
+        />
+      )}
+
+      <GenerarEstimacionModal
+        obraId={obraSeleccionada?.id}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onGenerated={handleGenerated}
+      />
     </Layout>
   );
 };

@@ -21,11 +21,147 @@
         "url": {
           "raw": "http://localhost:3001/api/auth/login",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "3001",
-          "path": ["api", "auth", "login"]
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
       }
+    },
+    {
+      "name": "Estimaciones",
+      "item": [
+        {
+          "name": "Generar estimación semanal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2025-01-05\",\n  \"generadoPor\": \"Sistema\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/obras/1/estimaciones",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "obras",
+                "1",
+                "estimaciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Previsualizar estimación semanal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2025-01-05\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/obras/1/estimaciones?preview=true",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "obras",
+                "1",
+                "estimaciones"
+              ],
+              "query": [
+                {
+                  "key": "preview",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar estimaciones por obra",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3001/api/obras/1/estimaciones",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "obras",
+                "1",
+                "estimaciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalle de estimación",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3001/api/estimaciones/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "estimaciones",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Descargar PDF estimación",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3001/api/estimaciones/1/pdf",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3001",
+              "path": [
+                "api",
+                "estimaciones",
+                "1",
+                "pdf"
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
