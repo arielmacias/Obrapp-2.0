@@ -1,145 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
-import apiClient from './api/client';
-import { useAuth } from './context/AuthContext';
-import { useObra } from './context/ObraContext';
-import Layout from './components/Layout';
-import LoginForm from './components/LoginForm';
-import EstimacionesList from './components/EstimacionesList';
-import EstimacionDetalle from './components/EstimacionDetalle';
-import GenerarEstimacionModal from './components/GenerarEstimacionModal';
-import ObrasView from './components/ObrasView';
-import GastosView from './components/GastosView';
-import PagosView from './components/PagosView';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Login from './pages/Login.jsx';
+import Obras from './pages/Obras.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-const App = () => {
-  const { isAuthenticated, isLoading: isAuthLoading, isHydrating } = useAuth();
-  const { obraSeleccionada, isLoading: isObraLoading } = useObra();
-  const [estimaciones, setEstimaciones] = useState([]);
-  const [detalle, setDetalle] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [activeView, setActiveView] = useState('gastos');
-
-  const loadEstimaciones = useCallback(async () => {
-    if (!obraSeleccionada?.id) return;
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await apiClient.listarEstimaciones(obraSeleccionada.id);
-      setEstimaciones(data.estimaciones || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [obraSeleccionada?.id]);
-
-  useEffect(() => {
-    if (activeView !== 'estimaciones') {
-      return;
-    }
-    setDetalle(null);
-    loadEstimaciones();
-  }, [obraSeleccionada?.id, loadEstimaciones, activeView]);
-
-  const isPageLoading = isAuthLoading || isHydrating || (isAuthenticated && isObraLoading);
-
-  if (isPageLoading) {
-    return <div className="centered">Cargando...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="centered">
-        <LoginForm />
-      </div>
-    );
-  }
-
-  const handleSelect = async (estimacionId) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await apiClient.obtenerEstimacion(estimacionId);
-      setDetalle(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGenerated = (data) => {
-    setIsModalOpen(false);
-    setDetalle(data);
-    loadEstimaciones();
-  };
-
-  const handleDownload = async () => {
-    if (!detalle?.estimacion?.id) return;
-    setIsDownloading(true);
-    try {
-      const blob = await apiClient.descargarPdfEstimacion(detalle.estimacion.id);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `estimacion-${detalle.estimacion.id}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const renderView = () => {
-    if (activeView === 'obras') {
-      return <ObrasView />;
-    }
-    if (activeView === 'gastos') {
-      return <GastosView />;
-    }
-    if (activeView === 'pagos') {
-      return <PagosView />;
-    }
-    if (activeView === 'estimaciones') {
-      return detalle ? (
-        <EstimacionDetalle
-          detalle={detalle}
-          onBack={() => setDetalle(null)}
-          onDownload={handleDownload}
-          isDownloading={isDownloading}
-          error={error}
-        />
-      ) : (
-        <EstimacionesList
-          estimaciones={estimaciones}
-          onSelect={handleSelect}
-          onGenerar={() => setIsModalOpen(true)}
-          isLoading={isLoading}
-          error={error}
-          obraNombre={obraSeleccionada?.nombre}
-        />
-      );
-    }
-    return null;
-  };
-
+export default function App() {
   return (
-    <Layout activeView={activeView} onNavigate={setActiveView}>
-      {renderView()}
-
-      <GenerarEstimacionModal
-        obraId={obraSeleccionada?.id}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onGenerated={handleGenerated}
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/obras"
+        element={
+          <ProtectedRoute>
+            <Obras />
+          </ProtectedRoute>
+        }
       />
-    </Layout>
+    </Routes>
   );
-};
-
-export default App;
+}
