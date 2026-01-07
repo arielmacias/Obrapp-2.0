@@ -1,21 +1,37 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login.jsx';
-import Obras from './pages/Obras.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { Navigate, Route, Routes } from "react-router-dom";
 
-export default function App() {
+import Navbar from "./components/Navbar.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+import AppHome from "./pages/AppHome.jsx";
+import Login from "./pages/Login.jsx";
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
+
+const App = () => {
+  const { user } = useAuth();
+
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route
-        path="/obras"
-        element={
-          <ProtectedRoute>
-            <Obras />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <div className="min-h-screen bg-bg text-text">
+      <Routes>
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/app" replace /> : <Login />}
+        />
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <div className="min-h-screen">
+                <Navbar />
+                <AppHome />
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </div>
   );
-}
+};
+
+export default App;

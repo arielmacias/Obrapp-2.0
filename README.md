@@ -1,69 +1,49 @@
-# ObrAPP MVP v0.1
+# ObrApp MVP 0.1 — Auth E2E
 
-MVP mínimo con flujo end-to-end:
-- Autenticación JWT
-- Crear obra
-- Listar obras
+Repositorio reiniciado para un flujo de autenticación E2E estable con UX/UI minimalista.
 
-## Requisitos
-- Node.js 18+
-- MySQL 8+
+## Quickstart
 
-## 1) Base de datos
-
-Crear la base y tablas usando el script:
+1) **Backend**
 
 ```bash
 cd backend
+cp .env.example .env
+# completa variables de DB + JWT_SECRET
 npm install
-npm run db:setup
+npm run dev
 ```
 
-Esto crea la BD `obrapp`, las tablas `usuarios` y `obras`, y un usuario demo:
-- **Email:** demo@obrapp.local
-- **Password:** demo1234
-
-## 2) Backend
+2) **Base de datos (MySQL)**
 
 ```bash
-cd backend
+# crea la base de datos
+mysql -u <user> -p -e "CREATE DATABASE obrapp;"
+
+# aplica schema + seed
+mysql -u <user> -p obrapp < ./src/db/schema.sql
+mysql -u <user> -p obrapp < ./src/db/seed.sql
+```
+
+3) **Frontend**
+
+```bash
+cd frontend
 cp .env.example .env
 npm install
 npm run dev
 ```
 
-Backend por defecto en `http://localhost:4000`.
+4) Abre `http://localhost:5173`.
 
-## 3) Frontend
+## Usuarios seed
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- admin: `admin@obrapp.local` / `Admin123!`
+- resid: `resid@obrapp.local` / `Resid123!`
 
-Frontend por defecto en `http://localhost:5173`.
+## Docs
 
-> Si el backend no corre en localhost:4000, setea `VITE_API_URL`.
+- [Flujo Auth + endpoints](docs/01-auth-flow.md)
+- [Correr local](docs/02-run-local.md)
+- [Guías UX/UI](docs/03-ux-ui-guidelines.md)
 
-## 4) Verificación E2E
-
-Con el backend corriendo:
-
-```bash
-cd backend
-node scripts/verify-e2e.js
-```
-
-## Endpoints principales
-- `POST /api/auth/login`
-- `POST /api/obras` (JWT)
-- `GET /api/obras` (JWT)
-
-## Estructura
-```
-/docs            (no modificar)
-/backend
-/frontend
-/db
-```
