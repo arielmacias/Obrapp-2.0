@@ -10,9 +10,23 @@ let ensureRoleColumnPromise;
 
 const ensureRoleColumn = async () => {
   if (!ensureRoleColumnPromise) {
-    ensureRoleColumnPromise = pool.query(
-      "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role ENUM('admin','resid') NOT NULL DEFAULT 'resid' AFTER password_hash"
-    );
+    ensureRoleColumnPromise = (async () => {
+      const [[{ count }]] = await pool.query(
+        "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'role'"
+      );
+
+      if (Number(count) === 0) {
+        try {
+          await pool.query(
+            "ALTER TABLE usuarios ADD COLUMN role ENUM('admin','resid') NOT NULL DEFAULT 'resid' AFTER password_hash"
+          );
+        } catch (error) {
+          if (error?.code !== "ER_DUP_FIELDNAME") {
+            throw error;
+          }
+        }
+      }
+    })();
   }
 
   await ensureRoleColumnPromise;
