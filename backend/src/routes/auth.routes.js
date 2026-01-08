@@ -6,9 +6,21 @@ import pool from "../db.js";
 import requireAuth from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+let ensureRoleColumnPromise;
+
+const ensureRoleColumn = async () => {
+  if (!ensureRoleColumnPromise) {
+    ensureRoleColumnPromise = pool.query(
+      "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role ENUM('admin','resid') NOT NULL DEFAULT 'resid' AFTER password_hash"
+    );
+  }
+
+  await ensureRoleColumnPromise;
+};
 
 router.post("/login", async (req, res, next) => {
   try {
+    await ensureRoleColumn();
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -59,6 +71,7 @@ router.post("/login", async (req, res, next) => {
 
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
+    await ensureRoleColumn();
     const [rows] = await pool.query(
       "SELECT id, nombre, email, role, equipo_id, activo FROM usuarios WHERE id = ? LIMIT 1",
       [req.user.id]
