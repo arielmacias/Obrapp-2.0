@@ -25,7 +25,10 @@ router.post("/login", async (req, res, next) => {
     }
 
     const user = rows[0];
-    const match = await bcrypt.compare(password, user.password_hash);
+    const storedHash = user.password_hash?.startsWith("$2y$")
+      ? `$2b${user.password_hash.slice(3)}`
+      : user.password_hash;
+    const match = await bcrypt.compare(password, storedHash);
 
     if (!match) {
       return res.status(401).json({ error: "Credenciales inválidas" });
