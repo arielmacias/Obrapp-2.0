@@ -1,3 +1,5 @@
+import { Link, NavLink } from "react-router-dom";
+
 import Brand from "./Brand.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -6,12 +8,36 @@ const Navbar = () => {
 
   return (
     <header className="border-b border-border bg-surface/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-        <Brand />
-        <div className="flex items-center gap-3">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+        <Link to="/obras" className="flex items-center gap-2">
+          <Brand />
+        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <nav className="flex items-center gap-3 text-xs font-semibold text-muted">
+            <NavLink
+              to="/obras"
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 transition ${
+                  isActive ? "bg-bg text-text" : "hover:text-text"
+                }`
+              }
+            >
+              Obras
+            </NavLink>
+            <NavLink
+              to="/obra"
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 transition ${
+                  isActive ? "bg-bg text-text" : "hover:text-text"
+                }`
+              }
+            >
+              Resumen
+            </NavLink>
+          </nav>
           {user ? (
             <span className="rounded-full border border-border bg-bg px-3 py-1 text-xs text-muted">
-              {user.nombre} · {user.rol}
+              {user.nombre} · {user.role}
             </span>
           ) : null}
           <button

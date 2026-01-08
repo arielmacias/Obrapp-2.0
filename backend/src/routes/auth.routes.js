@@ -16,7 +16,7 @@ router.post("/login", async (req, res, next) => {
     }
 
     const [rows] = await pool.query(
-      "SELECT id, nombre, email, password_hash, rol, activo FROM usuarios WHERE email = ? LIMIT 1",
+      "SELECT id, nombre, email, password_hash, role, equipo_id, activo FROM usuarios WHERE email = ? LIMIT 1",
       [email]
     );
 
@@ -34,9 +34,13 @@ router.post("/login", async (req, res, next) => {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    const token = jwt.sign({ id: user.id, rol: user.rol }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role, equipo_id: user.equipo_id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     return res.status(200).json({
       token,
@@ -44,7 +48,8 @@ router.post("/login", async (req, res, next) => {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
+        equipo_id: user.equipo_id,
       },
     });
   } catch (error) {
@@ -55,7 +60,7 @@ router.post("/login", async (req, res, next) => {
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, nombre, email, rol, activo FROM usuarios WHERE id = ? LIMIT 1",
+      "SELECT id, nombre, email, role, equipo_id, activo FROM usuarios WHERE id = ? LIMIT 1",
       [req.user.id]
     );
 
@@ -70,7 +75,8 @@ router.get("/me", requireAuth, async (req, res, next) => {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
+        equipo_id: user.equipo_id,
       },
     });
   } catch (error) {
