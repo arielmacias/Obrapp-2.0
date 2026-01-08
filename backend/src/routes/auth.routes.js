@@ -27,6 +27,16 @@ const ensureRoleColumn = async () => {
           }
         }
       }
+
+      const [[{ count: rolCount }]] = await pool.query(
+        "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'rol'"
+      );
+
+      if (Number(rolCount) > 0) {
+        await pool.query(
+          "UPDATE usuarios SET role = rol WHERE rol IS NOT NULL AND role <> rol"
+        );
+      }
     })();
   }
 
