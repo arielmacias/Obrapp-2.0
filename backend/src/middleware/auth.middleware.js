@@ -10,10 +10,11 @@ const requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const fallbackEquipoId = Number(process.env.DEFAULT_EQUIPO_ID) || 1;
     req.user = {
       id: decoded.id,
       role: decoded.role ?? decoded.rol,
-      equipo_id: decoded.equipo_id,
+      equipo_id: decoded.equipo_id ?? fallbackEquipoId,
     };
     return next();
   } catch (error) {

@@ -16,8 +16,6 @@ const ObraNueva = () => {
   const { setObraSeleccionada } = useObra();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showMap, setShowMap] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState({
     nombre: "",
     clave: "",
@@ -31,8 +29,6 @@ const ObraNueva = () => {
     direccion_numero: "",
     direccion_cp: "",
     portada_url: "",
-    lat: "",
-    lng: "",
   });
 
   const canCreate = user?.role === "admin";
@@ -71,8 +67,6 @@ const ObraNueva = () => {
       direccion_numero: form.direccion_numero.trim(),
       direccion_cp: form.direccion_cp.trim(),
       portada_url: form.portada_url.trim(),
-      lat: form.lat ? Number(form.lat) : undefined,
-      lng: form.lng ? Number(form.lng) : undefined,
     };
 
     Object.keys(payload).forEach((key) => {
@@ -109,8 +103,6 @@ const ObraNueva = () => {
       setLoading(false);
     }
   };
-
-  const coordsStatus = form.lat && form.lng ? "Asignada ✓" : "No asignada";
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
@@ -242,23 +234,6 @@ const ObraNueva = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-bg px-5 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-text">Ubicación en mapa</h3>
-                <p className="text-xs text-muted">Estado: {coordsStatus}</p>
-              </div>
-              <Button type="button" variant="secondary" onClick={() => setShowMap(true)}>
-                Seleccionar en mapa
-              </Button>
-            </div>
-            {form.lat && form.lng ? (
-              <p className="text-xs text-muted">
-                Coordenadas: {form.lat}, {form.lng}
-              </p>
-            ) : null}
-          </div>
-
           {!canCreate ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
               Tu perfil es {user?.role}. Solo administradores pueden crear obras.
@@ -277,60 +252,6 @@ const ObraNueva = () => {
         </form>
       </Card>
 
-      {showMap ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-10">
-          <Card className="w-full max-w-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-text">Seleccionar ubicación</h3>
-              <button
-                type="button"
-                onClick={() => setShowMap(false)}
-                className="text-sm font-semibold text-muted"
-              >
-                Cerrar
-              </button>
-            </div>
-            <div className="mt-4 rounded-2xl border border-dashed border-border bg-bg px-6 py-10 text-center text-sm text-muted">
-              Mapa no disponible en este entorno. Usa las coordenadas manuales si lo deseas.
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowAdvanced((prev) => !prev)}
-              className="mt-4 text-xs font-semibold text-accent"
-            >
-              {showAdvanced ? "Ocultar avanzado" : "Mostrar avanzado"}
-            </button>
-            {showAdvanced ? (
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Input
-                  id="lat"
-                  name="lat"
-                  label="Latitud"
-                  value={form.lat}
-                  onChange={handleChange}
-                  placeholder="Ej. 19.432608"
-                />
-                <Input
-                  id="lng"
-                  name="lng"
-                  label="Longitud"
-                  value={form.lng}
-                  onChange={handleChange}
-                  placeholder="Ej. -99.133209"
-                />
-              </div>
-            ) : null}
-            <div className="mt-6 flex justify-end gap-3">
-              <Button type="button" variant="secondary" onClick={() => setShowMap(false)}>
-                Cancelar
-              </Button>
-              <Button type="button" onClick={() => setShowMap(false)}>
-                Confirmar ubicación
-              </Button>
-            </div>
-          </Card>
-        </div>
-      ) : null}
     </main>
   );
 };
