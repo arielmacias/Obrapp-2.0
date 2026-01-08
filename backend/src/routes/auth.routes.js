@@ -7,20 +7,60 @@ import requireAuth from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 let ensureRoleColumnPromise;
+let ensureEquipoIdColumnPromise;
 
 const ensureRoleColumn = async () => {
   if (!ensureRoleColumnPromise) {
-    ensureRoleColumnPromise = pool.query(
-      "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS role ENUM('admin','resid') NOT NULL DEFAULT 'resid' AFTER password_hash"
-    );
+    ensureRoleColumnPromise = (async () => {
+      const [[{ count }]] = await pool.query(
+        "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'role'"
+      );
+
+      if (Number(count) === 0) {
+        try {
+          await pool.query(
+            "ALTER TABLE usuarios ADD COLUMN role ENUM('admin','resid') NOT NULL DEFAULT 'resid' AFTER password_hash"
+          );
+        } catch (error) {
+          if (error?.code !== "ER_DUP_FIELDNAME") {
+            throw error;
+          }
+        }
+      }
+    })();
   }
 
   await ensureRoleColumnPromise;
 };
 
+const ensureEquipoIdColumn = async () => {
+  if (!ensureEquipoIdColumnPromise) {
+    ensureEquipoIdColumnPromise = (async () => {
+      const [[{ count }]] = await pool.query(
+        "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuarios' AND COLUMN_NAME = 'equipo_id'"
+      );
+
+      if (Number(count) === 0) {
+        try {
+          await pool.query(
+            "ALTER TABLE usuarios ADD COLUMN equipo_id INT NULL AFTER role"
+          );
+        } catch (error) {
+          if (error?.code !== "ER_DUP_FIELDNAME") {
+            throw error;
+          }
+        }
+      }
+    })();
+  }
+
+  await ensureEquipoIdColumnPromise;
+};
+
 router.post("/login", async (req, res, next) => {
   try {
     await ensureRoleColumn();
+    await ensureEquipoIdColumn();
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -72,6 +112,7 @@ router.post("/login", async (req, res, next) => {
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
     await ensureRoleColumn();
+    await ensureEquipoIdColumn();
     const [rows] = await pool.query(
       "SELECT id, nombre, email, role, equipo_id, activo FROM usuarios WHERE id = ? LIMIT 1",
       [req.user.id]
