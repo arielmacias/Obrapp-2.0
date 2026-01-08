@@ -5,6 +5,7 @@ import { registerSW } from "virtual:pwa-register";
 
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { ObraProvider } from "./context/ObraContext.jsx";
 import "./styles/theme.css";
 import "./styles/globals.css";
 
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ObraProvider>
+          <App />
+        </ObraProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

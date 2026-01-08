@@ -35,3 +35,13 @@ export const loginRequest = (payload) =>
   });
 
 export const meRequest = () => request("/auth/me");
+
+export const fetchObrasRequest = () => request("/obras");
+
+export const createObraRequest = (payload) =>
+  request("/obras", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const fetchObraRequest = (obraId) => request(`/obras/${obraId}`);
