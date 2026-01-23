@@ -1,6 +1,7 @@
 import express from "express";
 
 import pool from "../db.js";
+import ensureCuentasTable from "../db/ensureCuentasTable.js";
 import requireAuth, { requireRole } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
