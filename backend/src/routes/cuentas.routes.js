@@ -48,6 +48,7 @@ const buildFilters = (query) => {
 
 router.get("/", requireAuth, async (req, res, next) => {
   try {
+    await ensureCuentasTable();
     const ownerId = await resolveOwnerId(req.user);
     if (!ownerId) {
       return res.status(404).json({
@@ -95,6 +96,7 @@ router.get("/", requireAuth, async (req, res, next) => {
 
 router.post("/", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
+    await ensureCuentasTable();
     const { nombre, descripcion, tipo, activa } = req.body || {};
     const trimmedNombre = String(nombre || "").trim();
 

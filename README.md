@@ -53,6 +53,7 @@ npm run dev
 
 - `db/001_create_cuentas.sql` (DDL standalone para crear la tabla `cuentas`).
 - También se añadió la tabla en `backend/src/db/schema.sql` para setups nuevos.
+- **Nota**: el backend crea la tabla `cuentas` si no existe al primer request, pero en producción se recomienda aplicar la migración de forma explícita.
 
 ### Endpoints
 
