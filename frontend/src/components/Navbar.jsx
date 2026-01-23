@@ -34,6 +34,16 @@ const Navbar = () => {
             >
               Resumen
             </NavLink>
+            <NavLink
+              to="/cuentas"
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 transition ${
+                  isActive ? "bg-bg text-text" : "hover:text-text"
+                }`
+              }
+            >
+              Cuentas
+            </NavLink>
           </nav>
           {user ? (
             <span className="rounded-full border border-border bg-bg px-3 py-1 text-xs text-muted">
