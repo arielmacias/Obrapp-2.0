@@ -6,6 +6,7 @@ import Login from "./pages/Login.jsx";
 import ObraNueva from "./pages/ObraNueva.jsx";
 import ObraResumen from "./pages/ObraResumen.jsx";
 import ObrasList from "./pages/ObrasList.jsx";
+import Cuentas from "./pages/Cuentas.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
 const ProtectedLayout = ({ children }) => (
@@ -48,6 +49,14 @@ const App = () => {
           element={
             <ProtectedLayout>
               <ObraResumen />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/cuentas"
+          element={
+            <ProtectedLayout>
+              <Cuentas />
             </ProtectedLayout>
           }
         />
