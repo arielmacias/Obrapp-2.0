@@ -4,11 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { createObraRequest } from "../api/api.js";
 import Button from "../components/Button.jsx";
 import Card from "../components/Card.jsx";
-import Input from "../components/Input.jsx";
+import ObraForm from "../components/ObraForm.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useObra } from "../context/ObraContext.jsx";
-
-const statusOptions = ["ACTIVA", "PAUSADA", "CERRADA"];
+import { buildObraPayload, validateObraForm } from "../utils/obras.js";
 
 const ObraNueva = () => {
   const navigate = useNavigate();
@@ -42,41 +41,7 @@ const ObraNueva = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const validation = useMemo(() => {
-    const errors = {};
-    if (!form.nombre.trim()) {
-      errors.nombre = "El nombre es obligatorio";
-    }
-    if (!/^[A-Z0-9]{3}$/.test(form.clave)) {
-      errors.clave = "Debe tener 3 caracteres alfanuméricos";
-    }
-    return errors;
-  }, [form.clave, form.nombre]);
-
-  const buildPayload = () => {
-    const payload = {
-      nombre: form.nombre.trim(),
-      clave: form.clave.trim(),
-      cliente_nombre: form.cliente_nombre.trim(),
-      status: form.status,
-      fecha_inicio: form.fecha_inicio || undefined,
-      direccion_estado: form.direccion_estado.trim(),
-      direccion_ciudad: form.direccion_ciudad.trim(),
-      direccion_colonia: form.direccion_colonia.trim(),
-      direccion_calle: form.direccion_calle.trim(),
-      direccion_numero: form.direccion_numero.trim(),
-      direccion_cp: form.direccion_cp.trim(),
-      portada_url: form.portada_url.trim(),
-    };
-
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] === "" || payload[key] === undefined) {
-        delete payload[key];
-      }
-    });
-
-    return payload;
-  };
+  const validation = useMemo(() => validateObraForm(form), [form]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -94,7 +59,7 @@ const ObraNueva = () => {
 
     setLoading(true);
     try {
-      const { data } = await createObraRequest(buildPayload());
+      const { data } = await createObraRequest(buildObraPayload(form));
       setObraSeleccionada(data);
       navigate("/obra");
     } catch (err) {
@@ -118,140 +83,21 @@ const ObraNueva = () => {
         </div>
       </Card>
 
-      <Card>
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Input
-              id="nombre"
-              name="nombre"
-              label="Nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              placeholder="Obra Paseo Norte"
-              required
-              error={validation.nombre}
-            />
-            <Input
-              id="clave"
-              name="clave"
-              label="Clave"
-              value={form.clave}
-              onChange={handleChange}
-              placeholder="ABC"
-              required
-              helper="3 caracteres en mayúsculas"
-              error={validation.clave}
-            />
-            <Input
-              id="cliente_nombre"
-              name="cliente_nombre"
-              label="Cliente"
-              value={form.cliente_nombre}
-              onChange={handleChange}
-              placeholder="Cliente opcional"
-            />
-            <div className="flex flex-col gap-2">
-              <label htmlFor="status" className="text-sm font-medium text-text">
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text shadow-sm"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              id="fecha_inicio"
-              name="fecha_inicio"
-              label="Fecha inicio"
-              type="date"
-              value={form.fecha_inicio}
-              onChange={handleChange}
-            />
-            <Input
-              id="portada_url"
-              name="portada_url"
-              label="Portada URL"
-              value={form.portada_url}
-              onChange={handleChange}
-              placeholder="https://"
-            />
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold text-text">Dirección</h2>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <Input
-                id="direccion_estado"
-                name="direccion_estado"
-                label="Estado"
-                value={form.direccion_estado}
-                onChange={handleChange}
-              />
-              <Input
-                id="direccion_ciudad"
-                name="direccion_ciudad"
-                label="Ciudad"
-                value={form.direccion_ciudad}
-                onChange={handleChange}
-              />
-              <Input
-                id="direccion_colonia"
-                name="direccion_colonia"
-                label="Colonia"
-                value={form.direccion_colonia}
-                onChange={handleChange}
-              />
-              <Input
-                id="direccion_calle"
-                name="direccion_calle"
-                label="Calle"
-                value={form.direccion_calle}
-                onChange={handleChange}
-              />
-              <Input
-                id="direccion_numero"
-                name="direccion_numero"
-                label="No."
-                value={form.direccion_numero}
-                onChange={handleChange}
-              />
-              <Input
-                id="direccion_cp"
-                name="direccion_cp"
-                label="CP"
-                value={form.direccion_cp}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {!canCreate ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              Tu perfil es {user?.role}. Solo administradores pueden crear obras.
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {error}
-            </div>
-          ) : null}
-
-          <Button type="submit" isLoading={loading} disabled={!canCreate}>
-            Crear obra
-          </Button>
-        </form>
-      </Card>
-
+      <ObraForm
+        form={form}
+        validation={validation}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+        loading={loading}
+        error={error}
+        submitLabel="Crear obra"
+        disabled={!canCreate}
+        notice={
+          !canCreate
+            ? `Tu perfil es ${user?.role}. Solo administradores pueden crear obras.`
+            : ""
+        }
+      />
     </main>
   );
 };

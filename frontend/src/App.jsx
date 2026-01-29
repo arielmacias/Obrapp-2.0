@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import Login from "./pages/Login.jsx";
+import ObraEditar from "./pages/ObraEditar.jsx";
 import ObraNueva from "./pages/ObraNueva.jsx";
 import ObraResumen from "./pages/ObraResumen.jsx";
 import ObrasList from "./pages/ObrasList.jsx";
@@ -45,6 +46,16 @@ const App = () => {
           }
         />
         <Route
+          path="/obras/:id/editar"
+          element={
+            <ProtectedLayout>
+              <ProtectedRoute requiredRole="admin" redirectTo="/obras">
+                <ObraEditar />
+              </ProtectedRoute>
+            </ProtectedLayout>
+          }
+        />
+        <Route
           path="/obra"
           element={
             <ProtectedLayout>
@@ -56,7 +67,9 @@ const App = () => {
           path="/cuentas"
           element={
             <ProtectedLayout>
-              <Cuentas />
+              <ProtectedRoute requiredRole="admin" redirectTo="/obras">
+                <Cuentas />
+              </ProtectedRoute>
             </ProtectedLayout>
           }
         />
