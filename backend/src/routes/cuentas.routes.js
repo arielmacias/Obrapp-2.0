@@ -78,7 +78,7 @@ router.get("/", requireAuth, async (req, res, next) => {
     }
 
     const [rows] = await pool.query(
-      `SELECT id, nombre, descripcion, tipo, activa, created_by, created_at, updated_at FROM cuentas WHERE ${where.join(
+      `SELECT id, nombre, descripcion, tipo, saldo, activa, created_by, created_at, updated_at FROM cuentas WHERE ${where.join(
         " AND "
       )} ORDER BY created_at DESC`,
       params
@@ -147,7 +147,7 @@ router.post("/", requireAuth, requireRole("admin"), async (req, res, next) => {
     );
 
     const [rows] = await pool.query(
-      "SELECT id, nombre, descripcion, tipo, activa, created_by, created_at, updated_at FROM cuentas WHERE id = ?",
+      "SELECT id, nombre, descripcion, tipo, saldo, activa, created_by, created_at, updated_at FROM cuentas WHERE id = ?",
       [result.insertId]
     );
 
