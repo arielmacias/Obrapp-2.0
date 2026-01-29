@@ -2,7 +2,6 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
-import multer from "multer";
 
 import pool from "../db.js";
 import ensureGastosTables from "../db/ensureGastosTables.js";
@@ -27,11 +26,11 @@ const PARTIDAS = [
 ];
 
 const require = createRequire(import.meta.url);
-let multer;
+let multerLib;
 try {
-  multer = require("multer");
+  multerLib = require("multer");
 } catch (error) {
-  multer = null;
+  multerLib = null;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -41,8 +40,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const storage = multer
-  ? multer.diskStorage({
+const storage = multerLib
+  ? multerLib.diskStorage({
       destination: (_req, _file, cb) => {
         cb(null, UPLOAD_DIR);
       },
@@ -54,8 +53,8 @@ const storage = multer
     })
   : null;
 
-const upload = multer
-  ? multer({
+const upload = multerLib
+  ? multerLib({
       storage,
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, cb) => {
@@ -74,27 +73,6 @@ const upload = multer
         next(error);
       },
     };
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const extension = path.extname(file.originalname).toLowerCase();
-    const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${extension}`);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: MAX_FILE_SIZE },
-  fileFilter: (_req, file, cb) => {
-    if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
-      return cb(null, true);
-    }
-    return cb(new Error("Tipo de comprobante inválido. Usa PDF o JPG."));
-  },
-});
 
 const resolveOwnerId = async (user) => {
   if (user.role === "admin") {
