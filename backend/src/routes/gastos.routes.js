@@ -2,6 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { createRequire } from "module";
+import multer from "multer";
 
 import pool from "../db.js";
 import ensureGastosTables from "../db/ensureGastosTables.js";
@@ -73,6 +74,27 @@ const upload = multer
         next(error);
       },
     };
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: (_req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${extension}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
+      return cb(null, true);
+    }
+    return cb(new Error("Tipo de comprobante inválido. Usa PDF o JPG."));
+  },
+});
 
 const resolveOwnerId = async (user) => {
   if (user.role === "admin") {
