@@ -4,6 +4,8 @@ import express from "express";
 import authRoutes from "./routes/auth.routes.js";
 import obrasRoutes from "./routes/obras.routes.js";
 import cuentasRoutes from "./routes/cuentas.routes.js";
+import gastosRoutes from "./routes/gastos.routes.js";
+import proveedoresRoutes from "./routes/proveedores.routes.js";
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/obras", obrasRoutes);
 app.use("/api/cuentas", cuentasRoutes);
+app.use("/api/gastos", gastosRoutes);
+app.use("/api/proveedores", proveedoresRoutes);
 
 app.use((err, _req, res, _next) => {
   const status = err.status || 500;
