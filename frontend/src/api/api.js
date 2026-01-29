@@ -28,6 +28,31 @@ const request = async (path, options = {}) => {
   return data;
 };
 
+const requestFormData = async (path, options = {}) => {
+  const token = getToken();
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+
+  return data;
+};
+
 export const loginRequest = (payload) =>
   request("/auth/login", {
     method: "POST",
@@ -79,3 +104,41 @@ export const createCuentaRequest = (payload) =>
   });
 
 export const getCuentas = (params) => fetchCuentasRequest(params);
+
+export const fetchGastosRequest = (params) =>
+  request(`/gastos${buildQuery(params)}`);
+
+export const fetchGastoRequest = (gastoId) => request(`/gastos/${gastoId}`);
+
+export const createGastoRequest = (formData) =>
+  requestFormData("/gastos", {
+    method: "POST",
+    body: formData,
+  });
+
+export const updateGastoRequest = (gastoId, formData) =>
+  requestFormData(`/gastos/${gastoId}`, {
+    method: "PUT",
+    body: formData,
+  });
+
+export const deleteGastoRequest = (gastoId) =>
+  request(`/gastos/${gastoId}`, { method: "DELETE" });
+
+export const fetchProveedoresRequest = (query) =>
+  request(`/proveedores${buildQuery({ q: query })}`);
+
+export const downloadComprobanteRequest = async (gastoId) => {
+  const token = getToken();
+  const response = await fetch(`${baseUrl}/gastos/${gastoId}/comprobante`, {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+  return response.blob();
+};
