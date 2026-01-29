@@ -46,6 +46,17 @@ export const createObraRequest = (payload) =>
 
 export const fetchObraRequest = (obraId) => request(`/obras/${obraId}`);
 
+export const updateObraRequest = (obraId, payload) =>
+  request(`/obras/${obraId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
+export const deleteObraRequest = (obraId) =>
+  request(`/obras/${obraId}`, {
+    method: "DELETE",
+  });
+
 const buildQuery = (params = {}) => {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
