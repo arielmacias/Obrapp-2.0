@@ -1,6 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { createRequire } from "module";
 import multer from "multer";
 
 import pool from "../db.js";
@@ -25,6 +26,14 @@ const PARTIDAS = [
   "Indirectos",
 ];
 
+const require = createRequire(import.meta.url);
+let multer;
+try {
+  multer = require("multer");
+} catch (error) {
+  multer = null;
+}
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const UPLOAD_DIR = path.resolve("uploads", "comprobantes");
 
@@ -32,6 +41,39 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
+const storage = multer
+  ? multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        cb(null, UPLOAD_DIR);
+      },
+      filename: (_req, file, cb) => {
+        const extension = path.extname(file.originalname).toLowerCase();
+        const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${unique}${extension}`);
+      },
+    })
+  : null;
+
+const upload = multer
+  ? multer({
+      storage,
+      limits: { fileSize: MAX_FILE_SIZE },
+      fileFilter: (_req, file, cb) => {
+        if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
+          return cb(null, true);
+        }
+        return cb(new Error("Tipo de comprobante inválido. Usa PDF o JPG."));
+      },
+    })
+  : {
+      single: () => (_req, _res, next) => {
+        const error = new Error(
+          "Dependencia faltante: instala 'multer' para cargar comprobantes."
+        );
+        error.status = 500;
+        next(error);
+      },
+    };
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, UPLOAD_DIR);
