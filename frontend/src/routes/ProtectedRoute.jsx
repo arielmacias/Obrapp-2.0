@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requiredRole, redirectTo = "/obras" }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -15,6 +15,10 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to={redirectTo} replace />;
   }
 
   return children;

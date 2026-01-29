@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   return (
     <header className="border-b border-border bg-surface/80 backdrop-blur">
@@ -34,16 +35,18 @@ const Navbar = () => {
             >
               Resumen
             </NavLink>
-            <NavLink
-              to="/cuentas"
-              className={({ isActive }) =>
-                `rounded-full px-3 py-2 transition ${
-                  isActive ? "bg-bg text-text" : "hover:text-text"
-                }`
-              }
-            >
-              Cuentas
-            </NavLink>
+            {isAdmin ? (
+              <NavLink
+                to="/cuentas"
+                className={({ isActive }) =>
+                  `rounded-full px-3 py-2 transition ${
+                    isActive ? "bg-bg text-text" : "hover:text-text"
+                  }`
+                }
+              >
+                Cuentas
+              </NavLink>
+            ) : null}
           </nav>
           {user ? (
             <span className="rounded-full border border-border bg-bg px-3 py-1 text-xs text-muted">
