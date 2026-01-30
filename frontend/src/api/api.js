@@ -13,10 +13,49 @@ const request = async (path, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      "No se pudo conectar al backend. Verifica que el servidor esté activo."
+    );
+  }
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+
+  return data;
+};
+
+const requestMultipart = async (path, options = {}) => {
+  const token = getToken();
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      "No se pudo conectar al backend. Verifica que el servidor esté activo."
+    );
+  }
 
   const data = await response.json().catch(() => ({}));
 
@@ -79,3 +118,69 @@ export const createCuentaRequest = (payload) =>
   });
 
 export const getCuentas = (params) => fetchCuentasRequest(params);
+
+export const fetchGastosRequest = (params) =>
+  request(`/gastos${buildQuery(params)}`);
+
+export const fetchGastoRequest = (gastoId) => request(`/gastos/${gastoId}`);
+
+const buildFormData = (payload, file) => {
+  const formData = new FormData();
+  Object.entries(payload || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+    formData.append(key, value);
+  });
+  if (file) {
+    formData.append("comprobante", file);
+  }
+  return formData;
+};
+
+export const createGastoRequest = (payload, file) => {
+  if (file) {
+    return requestMultipart("/gastos", {
+      method: "POST",
+      body: buildFormData(payload, file),
+    });
+  }
+  return request("/gastos", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+};
+
+export const updateGastoRequest = (gastoId, payload, file) => {
+  if (file) {
+    return requestMultipart(`/gastos/${gastoId}`, {
+      method: "PUT",
+      body: buildFormData(payload, file),
+    });
+  }
+  return request(`/gastos/${gastoId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+};
+
+export const deleteGastoRequest = (gastoId) =>
+  request(`/gastos/${gastoId}`, { method: "DELETE" });
+
+export const fetchProveedoresRequest = (query) =>
+  request(`/proveedores${buildQuery({ q: query })}`);
+
+export const downloadComprobanteRequest = async (gastoId) => {
+  const token = getToken();
+  const response = await fetch(`${baseUrl}/gastos/${gastoId}/comprobante`, {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined,
+    },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+  return response.blob();
+};
