@@ -8,6 +8,10 @@ import ObraNueva from "./pages/ObraNueva.jsx";
 import ObraResumen from "./pages/ObraResumen.jsx";
 import ObrasList from "./pages/ObrasList.jsx";
 import Cuentas from "./pages/Cuentas.jsx";
+import GastoDetalle from "./pages/GastoDetalle.jsx";
+import GastoEditar from "./pages/GastoEditar.jsx";
+import GastoNuevo from "./pages/GastoNuevo.jsx";
+import GastosList from "./pages/GastosList.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
 const ProtectedLayout = ({ children }) => (
@@ -70,6 +74,38 @@ const App = () => {
               <ProtectedRoute requiredRole="admin" redirectTo="/obras">
                 <Cuentas />
               </ProtectedRoute>
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/gastos"
+          element={
+            <ProtectedLayout>
+              <GastosList />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/gastos/nuevo"
+          element={
+            <ProtectedLayout>
+              <GastoNuevo />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/gastos/:id"
+          element={
+            <ProtectedLayout>
+              <GastoDetalle />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/gastos/:id/editar"
+          element={
+            <ProtectedLayout>
+              <GastoEditar />
             </ProtectedLayout>
           }
         />
