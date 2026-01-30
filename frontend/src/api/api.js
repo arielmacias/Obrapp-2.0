@@ -35,7 +35,7 @@ const request = async (path, options = {}) => {
   return data;
 };
 
-const requestFormData = async (path, options = {}) => {
+const requestMultipart = async (path, options = {}) => {
   const token = getToken();
   const headers = {
     ...options.headers,
@@ -56,31 +56,6 @@ const requestFormData = async (path, options = {}) => {
       "No se pudo conectar al backend. Verifica que el servidor esté activo."
     );
   }
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const error = data?.error || data?.message || "Error de servidor";
-    throw new Error(error);
-  }
-
-  return data;
-};
-
-const requestFormData = async (path, options = {}) => {
-  const token = getToken();
-  const headers = {
-    ...options.headers,
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers,
-  });
 
   const data = await response.json().catch(() => ({}));
 
@@ -165,7 +140,7 @@ const buildFormData = (payload, file) => {
 
 export const createGastoRequest = (payload, file) => {
   if (file) {
-    return requestFormData("/gastos", {
+    return requestMultipart("/gastos", {
       method: "POST",
       body: buildFormData(payload, file),
     });
@@ -178,7 +153,7 @@ export const createGastoRequest = (payload, file) => {
 
 export const updateGastoRequest = (gastoId, payload, file) => {
   if (file) {
-    return requestFormData(`/gastos/${gastoId}`, {
+    return requestMultipart(`/gastos/${gastoId}`, {
       method: "PUT",
       body: buildFormData(payload, file),
     });
