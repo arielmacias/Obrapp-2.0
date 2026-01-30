@@ -13,10 +13,49 @@ const request = async (path, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      "No se pudo conectar al backend. Verifica que el servidor esté activo."
+    );
+  }
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+
+  return data;
+};
+
+const requestFormData = async (path, options = {}) => {
+  const token = getToken();
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      "No se pudo conectar al backend. Verifica que el servidor esté activo."
+    );
+  }
 
   const data = await response.json().catch(() => ({}));
 

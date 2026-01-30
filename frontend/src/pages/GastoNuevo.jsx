@@ -156,7 +156,6 @@ const GastoNuevo = () => {
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
       <div>
         <h1 className="text-2xl font-semibold text-text">Nuevo gasto</h1>
-        <p className="text-sm text-muted">&nbsp;</p>
       </div>
 
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
