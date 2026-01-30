@@ -67,6 +67,31 @@ const requestFormData = async (path, options = {}) => {
   return data;
 };
 
+const requestFormData = async (path, options = {}) => {
+  const token = getToken();
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = data?.error || data?.message || "Error de servidor";
+    throw new Error(error);
+  }
+
+  return data;
+};
+
 export const loginRequest = (payload) =>
   request("/auth/login", {
     method: "POST",
