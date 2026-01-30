@@ -1,7 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
-import multer from "multer";
+import { createRequire } from "module";
 
 import pool from "../db.js";
 import ensureGastosTables from "../db/ensureGastosTables.js";
@@ -25,6 +25,14 @@ const PARTIDAS = [
   "Indirectos",
 ];
 
+const require = createRequire(import.meta.url);
+let multerLib;
+try {
+  multerLib = require("multer");
+} catch (error) {
+  multerLib = null;
+}
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const UPLOAD_DIR = path.resolve("uploads", "comprobantes");
 
@@ -32,29 +40,41 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const extension = path.extname(file.originalname).toLowerCase();
-    const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${extension}`);
-  },
-});
+const storage = multerLib
+  ? multerLib.diskStorage({
+      destination: (_req, _file, cb) => {
+        cb(null, UPLOAD_DIR);
+      },
+      filename: (_req, file, cb) => {
+        const extension = path.extname(file.originalname).toLowerCase();
+        const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${unique}${extension}`);
+      },
+    })
+  : null;
 
-const upload = multer({
-  storage,
-  limits: { fileSize: MAX_FILE_SIZE },
-  fileFilter: (_req, file, cb) => {
-    if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
-      return cb(null, true);
-    }
-    const error = new Error("Tipo de comprobante inválido. Usa PDF o JPG.");
-    error.status = 400;
-    return cb(error);
-  },
-});
+const upload = multerLib
+  ? multerLib({
+      storage,
+      limits: { fileSize: MAX_FILE_SIZE },
+      fileFilter: (_req, file, cb) => {
+        if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
+          return cb(null, true);
+        }
+        const error = new Error("Tipo de comprobante inválido. Usa PDF o JPG.");
+        error.status = 400;
+        return cb(error);
+      },
+    })
+  : {
+      single: () => (_req, _res, next) => {
+        const error = new Error(
+          "Multer no está instalado. Ejecuta `npm install multer` en backend."
+        );
+        error.status = 500;
+        next(error);
+      },
+    };
 
 const resolveOwnerId = async (user) => {
   if (user.role === "admin") {
