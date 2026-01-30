@@ -110,17 +110,45 @@ export const fetchGastosRequest = (params) =>
 
 export const fetchGastoRequest = (gastoId) => request(`/gastos/${gastoId}`);
 
-export const createGastoRequest = (formData) =>
-  requestFormData("/gastos", {
-    method: "POST",
-    body: formData,
+const buildFormData = (payload, file) => {
+  const formData = new FormData();
+  Object.entries(payload || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+    formData.append(key, value);
   });
+  if (file) {
+    formData.append("comprobante", file);
+  }
+  return formData;
+};
 
-export const updateGastoRequest = (gastoId, formData) =>
-  requestFormData(`/gastos/${gastoId}`, {
-    method: "PUT",
-    body: formData,
+export const createGastoRequest = (payload, file) => {
+  if (file) {
+    return requestFormData("/gastos", {
+      method: "POST",
+      body: buildFormData(payload, file),
+    });
+  }
+  return request("/gastos", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
+};
+
+export const updateGastoRequest = (gastoId, payload, file) => {
+  if (file) {
+    return requestFormData(`/gastos/${gastoId}`, {
+      method: "PUT",
+      body: buildFormData(payload, file),
+    });
+  }
+  return request(`/gastos/${gastoId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+};
 
 export const deleteGastoRequest = (gastoId) =>
   request(`/gastos/${gastoId}`, { method: "DELETE" });

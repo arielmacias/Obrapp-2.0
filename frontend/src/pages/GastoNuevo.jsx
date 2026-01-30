@@ -12,17 +12,6 @@ import Card from "../components/Card.jsx";
 import Input from "../components/Input.jsx";
 import { PARTIDA_OPTIONS, TIPO_OPTIONS } from "../utils/gastos.js";
 
-const buildFormData = (form) => {
-  const formData = new FormData();
-  Object.entries(form).forEach(([key, value]) => {
-    if (value === undefined || value === null) {
-      return;
-    }
-    formData.append(key, value);
-  });
-  return formData;
-};
-
 const getToday = () => new Date().toISOString().split("T")[0];
 
 const GastoNuevo = () => {
@@ -149,15 +138,12 @@ const GastoNuevo = () => {
         proveedor: form.proveedor.trim(),
         referencia_comprobante: form.referencia_comprobante.trim(),
         importe: Number(form.importe).toFixed(2),
-        iva_aplica: form.iva_aplica ? "1" : "0",
+        iva_aplica: form.iva_aplica,
         pago_status: form.pago_status,
-        comprobante_pendiente: form.comprobante_pendiente ? "1" : "0",
+        comprobante_pendiente: form.comprobante_pendiente,
       };
-      const formData = buildFormData(payload);
-      if (form.comprobante && !form.comprobante_pendiente) {
-        formData.append("comprobante", form.comprobante);
-      }
-      await createGastoRequest(formData);
+      const file = form.comprobante && !form.comprobante_pendiente ? form.comprobante : null;
+      await createGastoRequest(payload, file);
       navigate("/gastos");
     } catch (err) {
       setError(err.message);
@@ -170,7 +156,7 @@ const GastoNuevo = () => {
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
       <div>
         <h1 className="text-2xl font-semibold text-text">Nuevo gasto</h1>
-        <p className="text-sm text-muted">Captura rápida sin entrar a una obra.</p>
+        <p className="text-sm text-muted">&nbsp;</p>
       </div>
 
       {error ? <p className="text-sm text-red-500">{error}</p> : null}

@@ -33,6 +33,7 @@ app.use("/api/gastos", gastosRoutes);
 app.use("/api/proveedores", proveedoresRoutes);
 
 app.use((err, _req, res, _next) => {
+  console.error("API error:", err);
   const status = err.status || 500;
   const message = err.message || "Error interno";
   res.status(status).json({

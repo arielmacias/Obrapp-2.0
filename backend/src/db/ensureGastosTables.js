@@ -25,8 +25,11 @@ const ensureGastosTables = async () => {
         concepto VARCHAR(140) NOT NULL,
         proveedor_id INT NULL,
         referencia_comprobante VARCHAR(10) NULL,
+        comprobante_nombre VARCHAR(255) NULL,
+        comprobante_filename VARCHAR(255) NULL,
         comprobante_path VARCHAR(255) NULL,
         comprobante_mime VARCHAR(50) NULL,
+        comprobante_size INT NULL,
         comprobante_pendiente TINYINT(1) NOT NULL DEFAULT 1,
         importe DECIMAL(12,2) NOT NULL,
         iva_aplica TINYINT(1) NOT NULL DEFAULT 0,
@@ -50,6 +53,24 @@ const ensureGastosTables = async () => {
   }
 
   await ensureGastosTablesPromise;
+
+  const [columns] = await pool.query(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'gastos'"
+  );
+  const existing = new Set(columns.map((column) => column.COLUMN_NAME));
+  const columnAdds = [];
+  if (!existing.has("comprobante_nombre")) {
+    columnAdds.push("ADD COLUMN comprobante_nombre VARCHAR(255) NULL");
+  }
+  if (!existing.has("comprobante_filename")) {
+    columnAdds.push("ADD COLUMN comprobante_filename VARCHAR(255) NULL");
+  }
+  if (!existing.has("comprobante_size")) {
+    columnAdds.push("ADD COLUMN comprobante_size INT NULL");
+  }
+  if (columnAdds.length) {
+    await pool.query(`ALTER TABLE gastos ${columnAdds.join(", ")}`);
+  }
 };
 
 export default ensureGastosTables;

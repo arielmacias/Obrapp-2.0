@@ -13,17 +13,6 @@ import Card from "../components/Card.jsx";
 import Input from "../components/Input.jsx";
 import { PARTIDA_OPTIONS, TIPO_OPTIONS } from "../utils/gastos.js";
 
-const buildFormData = (form) => {
-  const formData = new FormData();
-  Object.entries(form).forEach(([key, value]) => {
-    if (value === undefined || value === null) {
-      return;
-    }
-    formData.append(key, value);
-  });
-  return formData;
-};
-
 const GastoEditar = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -160,15 +149,12 @@ const GastoEditar = () => {
         proveedor: form.proveedor.trim(),
         referencia_comprobante: form.referencia_comprobante.trim(),
         importe: Number(form.importe).toFixed(2),
-        iva_aplica: form.iva_aplica ? "1" : "0",
+        iva_aplica: form.iva_aplica,
         pago_status: form.pago_status,
-        comprobante_pendiente: form.comprobante_pendiente ? "1" : "0",
+        comprobante_pendiente: form.comprobante_pendiente,
       };
-      const formData = buildFormData(payload);
-      if (form.comprobante && !form.comprobante_pendiente) {
-        formData.append("comprobante", form.comprobante);
-      }
-      await updateGastoRequest(id, formData);
+      const file = form.comprobante && !form.comprobante_pendiente ? form.comprobante : null;
+      await updateGastoRequest(id, payload, file);
       navigate(`/gastos/${id}`);
     } catch (err) {
       setError(err.message);

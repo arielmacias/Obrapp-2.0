@@ -1,7 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { createRequire } from "module";
+import multer from "multer";
 
 import pool from "../db.js";
 import ensureGastosTables from "../db/ensureGastosTables.js";
@@ -25,14 +25,6 @@ const PARTIDAS = [
   "Indirectos",
 ];
 
-const require = createRequire(import.meta.url);
-let multerLib;
-try {
-  multerLib = require("multer");
-} catch (error) {
-  multerLib = null;
-}
-
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const UPLOAD_DIR = path.resolve("uploads", "comprobantes");
 
@@ -40,39 +32,29 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const storage = multerLib
-  ? multerLib.diskStorage({
-      destination: (_req, _file, cb) => {
-        cb(null, UPLOAD_DIR);
-      },
-      filename: (_req, file, cb) => {
-        const extension = path.extname(file.originalname).toLowerCase();
-        const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, `${unique}${extension}`);
-      },
-    })
-  : null;
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: (_req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const unique = `comprobante-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${extension}`);
+  },
+});
 
-const upload = multerLib
-  ? multerLib({
-      storage,
-      limits: { fileSize: MAX_FILE_SIZE },
-      fileFilter: (_req, file, cb) => {
-        if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
-          return cb(null, true);
-        }
-        return cb(new Error("Tipo de comprobante inválido. Usa PDF o JPG."));
-      },
-    })
-  : {
-      single: () => (_req, _res, next) => {
-        const error = new Error(
-          "Dependencia faltante: instala 'multer' para cargar comprobantes."
-        );
-        error.status = 500;
-        next(error);
-      },
-    };
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (["application/pdf", "image/jpeg"].includes(file.mimetype)) {
+      return cb(null, true);
+    }
+    const error = new Error("Tipo de comprobante inválido. Usa PDF o JPG.");
+    error.status = 400;
+    return cb(error);
+  },
+});
 
 const resolveOwnerId = async (user) => {
   if (user.role === "admin") {
@@ -383,22 +365,19 @@ router.post("/", requireAuth, upload.single("comprobante"), async (req, res, nex
     const proveedorId = await ensureProveedorId(connection, proveedor);
     const file = req.file;
     const pendienteInput = parseBoolean(comprobante_pendiente);
-    if (!file && pendienteInput === false) {
-      await connection.rollback();
-      return res.status(400).json({
-        error: "El comprobante es obligatorio o debe quedar marcado como pendiente.",
-      });
-    }
-    const comprobantePendiente = file ? 0 : pendienteInput === null ? 1 : Number(pendienteInput);
+    const comprobantePendiente = file ? 0 : pendienteInput === null ? 1 : 1;
     const comprobantePath = file ? path.join("uploads", "comprobantes", file.filename) : null;
     const comprobanteMime = file ? file.mimetype : null;
+    const comprobanteNombre = file ? file.originalname : null;
+    const comprobanteFilename = file ? file.filename : null;
+    const comprobanteSize = file ? file.size : null;
 
     const [result] = await connection.query(
       `INSERT INTO gastos
         (obra_id, cuenta_id, fecha, tipo, partida, concepto, proveedor_id, referencia_comprobante,
-         comprobante_path, comprobante_mime, comprobante_pendiente, importe, iva_aplica,
-         pago_status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         comprobante_nombre, comprobante_filename, comprobante_path, comprobante_mime, comprobante_size,
+         comprobante_pendiente, importe, iva_aplica, pago_status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         Number(obra_id),
         Number(cuenta_id),
@@ -408,8 +387,11 @@ router.post("/", requireAuth, upload.single("comprobante"), async (req, res, nex
         String(concepto).trim(),
         proveedorId,
         referencia_comprobante ? String(referencia_comprobante).trim() : null,
+        comprobanteNombre,
+        comprobanteFilename,
         comprobantePath,
         comprobanteMime,
+        comprobanteSize,
         comprobantePendiente,
         importeNormalizado,
         parseBoolean(iva_aplica) ? 1 : 0,
@@ -429,6 +411,7 @@ router.post("/", requireAuth, upload.single("comprobante"), async (req, res, nex
       message: "Gasto registrado correctamente.",
     });
   } catch (error) {
+    console.error("Error creando gasto:", error);
     await connection.rollback();
     return next(error);
   } finally {
@@ -542,24 +525,28 @@ router.put("/:id", requireAuth, upload.single("comprobante"), async (req, res, n
 
     let comprobantePath = gastoActual.comprobante_path;
     let comprobanteMime = gastoActual.comprobante_mime;
+    let comprobanteNombre = gastoActual.comprobante_nombre;
+    let comprobanteFilename = gastoActual.comprobante_filename;
+    let comprobanteSize = gastoActual.comprobante_size;
     let comprobantePendiente = gastoActual.comprobante_pendiente;
     if (req.file) {
       comprobantePath = path.join("uploads", "comprobantes", req.file.filename);
       comprobanteMime = req.file.mimetype;
+      comprobanteNombre = req.file.originalname;
+      comprobanteFilename = req.file.filename;
+      comprobanteSize = req.file.size;
       comprobantePendiente = 0;
     } else if (payload.comprobante_pendiente !== undefined) {
       const pendiente = parseBoolean(payload.comprobante_pendiente);
-      if (pendiente === false && !gastoActual.comprobante_path) {
-        await connection.rollback();
-        return res.status(400).json({
-          error: "El comprobante es obligatorio o debe quedar marcado como pendiente.",
-        });
-      }
       if (pendiente !== null) {
-        comprobantePendiente = Number(pendiente);
+        comprobantePendiente =
+          pendiente === false && !gastoActual.comprobante_path ? 1 : Number(pendiente) || 0;
         if (comprobantePendiente) {
           comprobantePath = null;
           comprobanteMime = null;
+          comprobanteNombre = null;
+          comprobanteFilename = null;
+          comprobanteSize = null;
         }
       }
     }
@@ -586,8 +573,11 @@ router.put("/:id", requireAuth, upload.single("comprobante"), async (req, res, n
       concepto: String(nextConcepto).trim(),
       proveedor_id: proveedorId,
       referencia_comprobante: referenciaValue,
+      comprobante_nombre: comprobanteNombre,
+      comprobante_filename: comprobanteFilename,
       comprobante_path: comprobantePath,
       comprobante_mime: comprobanteMime,
+      comprobante_size: comprobanteSize,
       comprobante_pendiente: comprobantePendiente,
       importe: importeNormalizado,
       iva_aplica: ivaValue,
@@ -607,8 +597,11 @@ router.put("/:id", requireAuth, upload.single("comprobante"), async (req, res, n
         concepto = ?,
         proveedor_id = ?,
         referencia_comprobante = ?,
+        comprobante_nombre = ?,
+        comprobante_filename = ?,
         comprobante_path = ?,
         comprobante_mime = ?,
+        comprobante_size = ?,
         comprobante_pendiente = ?,
         importe = ?,
         iva_aplica = ?,
@@ -624,8 +617,11 @@ router.put("/:id", requireAuth, upload.single("comprobante"), async (req, res, n
         updatedFields.concepto,
         updatedFields.proveedor_id,
         updatedFields.referencia_comprobante,
+        updatedFields.comprobante_nombre,
+        updatedFields.comprobante_filename,
         updatedFields.comprobante_path,
         updatedFields.comprobante_mime,
+        updatedFields.comprobante_size,
         updatedFields.comprobante_pendiente,
         updatedFields.importe,
         updatedFields.iva_aplica,
@@ -646,6 +642,7 @@ router.put("/:id", requireAuth, upload.single("comprobante"), async (req, res, n
       message: "Gasto actualizado correctamente.",
     });
   } catch (error) {
+    console.error("Error actualizando gasto:", error);
     await connection.rollback();
     return next(error);
   } finally {
@@ -700,6 +697,7 @@ router.delete("/:id", requireAuth, async (req, res, next) => {
       message: "Gasto eliminado correctamente.",
     });
   } catch (error) {
+    console.error("Error eliminando gasto:", error);
     await connection.rollback();
     return next(error);
   } finally {
